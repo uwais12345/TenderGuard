@@ -37,10 +37,18 @@ function App() {
         </button>
       </div>
 
-      {activeTab === 'vendor' && <Dashboard />}
-      {activeTab === 'drafter' && <TenderDrafter />}
-      {activeTab === 'bias' && <BiasCheckerDashboard />}
-      {activeTab === 'directory' && <VendorDirectory />}
+      <div style={{ display: activeTab === 'vendor' ? 'block' : 'none' }}>
+        <Dashboard />
+      </div>
+      <div style={{ display: activeTab === 'drafter' ? 'block' : 'none' }}>
+        <TenderDrafter />
+      </div>
+      <div style={{ display: activeTab === 'bias' ? 'block' : 'none' }}>
+        <BiasCheckerDashboard />
+      </div>
+      <div style={{ display: activeTab === 'directory' ? 'block' : 'none' }}>
+        <VendorDirectory />
+      </div>
     </div>
   )
 }

@@ -1,36 +1,38 @@
 import os
 import json
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
-
-def _configure_genai():
-    """Configure the Gemini SDK with the API key from environment."""
+def _get_genai_client():
+    """Returns the configured Gemini Client."""
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY environment variable is missing. Please set it in your .env file.")
-    genai.configure(api_key=api_key)
+    return genai.Client(api_key=api_key)
 
-
-def _get_json_model():
-    """Returns a Gemini model configured for structured JSON output."""
-    _configure_genai()
-    return genai.GenerativeModel(
-        model_name="gemini-flash-latest",
-        generation_config={
-            "response_mime_type": "application/json",
-            "temperature": 0.2,
-        }
+def _generate_json(prompt):
+    """Generates JSON output using the gemini-2.5-flash model."""
+    client = _get_genai_client()
+    config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        temperature=0.2,
+    )
+    return client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+        config=config
     )
 
-
-def _get_text_model():
-    """Returns a Gemini model configured for plain text output (used for chat)."""
-    _configure_genai()
-    return genai.GenerativeModel(
-        model_name="gemini-flash-latest",
-        generation_config={
-            "temperature": 0.4,
-        }
+def _generate_text(prompt):
+    """Generates plain text output using the gemini-2.5-flash model."""
+    client = _get_genai_client()
+    config = types.GenerateContentConfig(
+        temperature=0.4,
+    )
+    return client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+        config=config
     )
 
 
@@ -39,8 +41,9 @@ def evaluate_vendors_batch(user_requirements_text, parsed_proposals):
     Batch vendor evaluation using Google Gemini.
     Extracts technical scores AND financial bid data for L1/L2/L3 ranking.
     """
+    # Wrap checking just in case key is missing
     try:
-        model = _get_json_model()
+        _get_genai_client()
     except Exception as e:
         return {
             "top_vendors": [],
@@ -150,7 +153,7 @@ Return EXACTLY this JSON schema:
 """
 
     try:
-        response = model.generate_content(prompt)
+        response = _generate_json(prompt)
         result_data = json.loads(response.text)
 
         top_vendors = result_data.get("top_vendors", [])
@@ -177,7 +180,7 @@ Return EXACTLY this JSON schema:
 def ask_vendor_question(pdf_text, question):
     """RAG: Answer a specific question about a vendor's proposal PDF."""
     try:
-        model = _get_text_model()
+        _get_genai_client()
     except Exception as e:
         return f"System Error: {str(e)}"
 
@@ -195,7 +198,7 @@ User Question: {question}
 Provide a concise, accurate, and professional answer."""
 
     try:
-        response = model.generate_content(prompt)
+        response = _generate_text(prompt)
         return response.text
     except Exception as e:
         print(f"Gemini Chat Error: {e}")
@@ -207,7 +210,7 @@ def analyze_tender_bias(draft_tender_text):
     Returns a JSON object with restrictive score and flagged clauses.
     """
     try:
-        model = _get_json_model()
+        _get_genai_client()
     except Exception as e:
         return {"error": str(e)}
 
@@ -242,7 +245,7 @@ Analyze the document and return a JSON object EXACTLY matching this schema:
 }}
 """
     try:
-        response = model.generate_content(prompt)
+        response = _generate_json(prompt)
         return json.loads(response.text)
     except Exception as e:
         print(f"Gemini Bias Checker Error: {e}")
@@ -254,7 +257,7 @@ def generate_tender(prompt_text):
     based on a short natural language prompt from the user.
     """
     try:
-        model = _get_text_model()
+        _get_genai_client()
     except Exception as e:
         return f"System Error: {str(e)}"
 
@@ -282,7 +285,7 @@ User's Request: "{prompt_text}"
 Generate the full Markdown document now:
 """
     try:
-        response = model.generate_content(prompt)
+        response = _generate_text(prompt)
         return response.text
     except Exception as e:
         print(f"Gemini Generative Tender Error: {e}")

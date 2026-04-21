@@ -2,7 +2,7 @@ flask
 flask-cors
 werkzeug
 PyPDF2
-google-generativeai
+google-genai
 python-dotenv
 pymongo[srv]
 certifi

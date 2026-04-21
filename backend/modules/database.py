@@ -36,6 +36,15 @@ def get_db():
         _client.admin.command('ping')
         _db = _client["tenderguard"]
         print("SUCCESS: MongoDB connected successfully.")
+
+        # Ensure indexes exist for fast performance on Vendor Aggregations
+        try:
+            _db["evaluations"].create_index("top_vendors.company_name")
+            _db["evaluations"].create_index("timestamp")
+            _db["audit_logs"].create_index("timestamp")
+        except Exception as idx_err:
+            print(f"WARNING: Could not create indexes: {idx_err}")
+
         return _db
     except (ConnectionFailure, ServerSelectionTimeoutError) as e:
         print(f"WARNING: MongoDB connection failed: {e}. Continuing without database.")
