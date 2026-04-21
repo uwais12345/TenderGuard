@@ -1,0 +1,16 @@
+# Generic
+.DS_Store
+*.log
+
+# Frontend React / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# Backend Python / Flask
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/uploads/
