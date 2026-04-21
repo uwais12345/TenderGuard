@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import Dashboard from './components/Dashboard';
 import BiasCheckerDashboard from './components/BiasCheckerDashboard';
-import { Search, Scale } from 'lucide-react';
+import TenderDrafter from './components/TenderDrafter';
+import VendorDirectory from './components/VendorDirectory';
+import { Search, Scale, PenTool, Database } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('vendor');
@@ -16,14 +18,29 @@ function App() {
           <Search size={18} /> Vendor Evaluation
         </button>
         <button 
+          className={`nav-tab ${activeTab === 'drafter' ? 'active' : ''}`}
+          onClick={() => setActiveTab('drafter')}
+        >
+          <PenTool size={18} /> Tender Drafter
+        </button>
+        <button 
           className={`nav-tab ${activeTab === 'bias' ? 'active' : ''}`}
           onClick={() => setActiveTab('bias')}
         >
           <Scale size={18} /> Bias & Vigilance Check
         </button>
+        <button 
+          className={`nav-tab ${activeTab === 'directory' ? 'active' : ''}`}
+          onClick={() => setActiveTab('directory')}
+        >
+          <Database size={18} /> Vendor Directory
+        </button>
       </div>
 
-      {activeTab === 'vendor' ? <Dashboard /> : <BiasCheckerDashboard />}
+      {activeTab === 'vendor' && <Dashboard />}
+      {activeTab === 'drafter' && <TenderDrafter />}
+      {activeTab === 'bias' && <BiasCheckerDashboard />}
+      {activeTab === 'directory' && <VendorDirectory />}
     </div>
   )
 }

@@ -210,8 +210,38 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* ── SKELETON LOADER (PREMIUM UI) ── */}
+      {uploading && (
+        <div className="vendors-grid" style={{ marginTop: '30px' }}>
+          {[1, 2].map(n => (
+            <div key={n} className="vendor-card" style={{ height: '350px', background: 'rgba(30, 41, 59, 0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="vendor-header" style={{ borderBottom: 'none' }}>
+                <div style={{ flex: 1 }}>
+                  <div className="skeleton-line" style={{ width: '60%', height: '24px' }}></div>
+                  <div className="skeleton-line" style={{ width: '40%', height: '14px' }}></div>
+                </div>
+                <div className="skeleton-line" style={{ width: '40px', height: '40px', borderRadius: '50%' }}></div>
+              </div>
+              <div className="vendor-body">
+                <div className="skeleton-line" style={{ width: '90%' }}></div>
+                <div className="skeleton-line" style={{ width: '100%' }}></div>
+                <div className="skeleton-line" style={{ width: '85%', marginBottom: '20px' }}></div>
+                <div className="metrics-grid">
+                  {[1, 2, 3, 4].map(m => (
+                     <div key={m} className="metric" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                       <div className="skeleton-line" style={{ width: '50%', height: '12px' }}></div>
+                       <div className="skeleton-line" style={{ width: '30%', height: '20px', margin: '4px auto 0' }}></div>
+                     </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ── RESULTS ── */}
-      {result && (
+      {result && !uploading && (
         <section className="results-section">
           <div className="results-header">
             <div className="results-header-left">

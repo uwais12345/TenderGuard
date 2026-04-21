@@ -10,8 +10,8 @@ app = Flask(__name__)
 CORS(app)
 
 from modules.parser import extract_text_from_pdf
-from modules.ai_model import evaluate_vendors_batch, ask_vendor_question, analyze_tender_bias
-from modules.database import save_evaluation, write_audit_log, get_audit_logs, get_evaluation_history
+from modules.ai_model import evaluate_vendors_batch, ask_vendor_question, analyze_tender_bias, generate_tender
+from modules.database import save_evaluation, write_audit_log, get_audit_logs, get_evaluation_history, get_vendor_stats
 
 # Configuration
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
@@ -166,6 +166,26 @@ def analyze_bias():
     )
 
     return jsonify({"bias_analysis": result}), 200
+
+@app.route('/api/generate-tender', methods=['POST'])
+def auto_draft_tender():
+    """Generative AI Tool: Write a new tender from a brief description."""
+    data = request.get_json()
+    if not data or 'prompt' not in data:
+        return jsonify({"error": "No prompt provided."}), 400
+    
+    prompt = data['prompt'].strip()
+    if not prompt:
+        return jsonify({"error": "Prompt cannot be empty."}), 400
+        
+    tender_markdown = generate_tender(prompt)
+    return jsonify({"tender_markdown": tender_markdown}), 200
+
+@app.route('/api/vendors', methods=['GET'])
+def fetch_vendors():
+    """Vendor Reputation Engine: Return aggregated vendor track record."""
+    stats = get_vendor_stats()
+    return jsonify({"vendor_stats": stats}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

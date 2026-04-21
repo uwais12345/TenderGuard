@@ -247,3 +247,43 @@ Analyze the document and return a JSON object EXACTLY matching this schema:
     except Exception as e:
         print(f"Gemini Bias Checker Error: {e}")
         return {"error": str(e)}
+
+def generate_tender(prompt_text):
+    """
+    Generates a formal, vendor-neutral Government Request for Proposal (RFP) / Tender Document
+    based on a short natural language prompt from the user.
+    """
+    try:
+        model = _get_text_model()
+    except Exception as e:
+        return f"System Error: {str(e)}"
+
+    prompt = f"""
+You are an expert Government Procurement Officer and Technical RFP Writer.
+Your task is to write a complete, professional, and compliant Request for Proposal (RFP) / Tender Document based on the user's brief request.
+
+The document MUST NOT contain any brand-locking or restrictive criteria. Use generic specifications.
+Format the output as clean Markdown.
+Use the following structure:
+# REQUEST FOR PROPOSAL (RFP)
+**Tender Reference Number:** RFP-{'{import random; random.randint(1000,9999)}'}-2026
+**Issue Date:** [Current Date]
+
+## 1. Introduction & Background
+## 2. Scope of Work / Technical Specifications
+(Ensure these are generic and completely vendor-neutral)
+## 3. Eligibility Criteria
+(Turnover, past experience, required non-restrictive certs)
+## 4. Delivery & Payment Terms
+## 5. Bid Submission Guidelines
+
+User's Request: "{prompt_text}"
+
+Generate the full Markdown document now:
+"""
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        print(f"Gemini Generative Tender Error: {e}")
+        return f"Failed to generate tender: {str(e)}"

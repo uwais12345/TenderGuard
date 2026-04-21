@@ -146,3 +146,39 @@ def get_evaluation_history(limit=20):
     except Exception as e:
         print(f"DB get_evaluation_history error: {e}")
         return []
+
+def get_vendor_stats():
+    """
+    Aggregate evaluation history to calculate vendor statistics.
+    Returns: [{ company_name, total_bids, win_rate, average_score, average_bid_value }]
+    """
+    db = get_db()
+    if db is None:
+        return []
+        
+    try:
+        pipeline = [
+            {"$unwind": "$top_vendors"},
+            {"$group": {
+                "_id": "$top_vendors.company_name",
+                "total_bids": {"$sum": 1},
+                "wins": {"$sum": {"$cond": [{"$eq": ["$top_vendors.l_rank", 1]}, 1, 0]}},
+                "average_score": {"$avg": "$top_vendors.match_score"},
+                "average_bid_value": {"$avg": "$top_vendors.total_bid_value"}
+            }},
+            {"$project": {
+                "_id": 0,
+                "company_name": "$_id",
+                "total_bids": 1,
+                "wins": 1,
+                "win_rate": {"$multiply": [{"$divide": ["$wins", "$total_bids"]}, 100]},
+                "average_score": {"$round": ["$average_score", 1]},
+                "average_bid_value": 1
+            }},
+            {"$sort": {"total_bids": -1, "wins": -1}}
+        ]
+        stats = list(db["evaluations"].aggregate(pipeline))
+        return stats
+    except Exception as e:
+        print(f"DB get_vendor_stats error: {e}")
+        return []
