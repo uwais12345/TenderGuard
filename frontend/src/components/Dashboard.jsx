@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import EPortalModal from './EPortalModal';
 import {
   Upload, Search, Building2, TrendingUp,
   ThumbsUp, ThumbsDown, Loader2, FileText,
-  AlertCircle, CheckCircle2, ChevronRight, X, Files, Cpu
+  AlertCircle, CheckCircle2, ChevronRight, X, Files,
+  Cpu, MessageSquare, BarChart2, Download
 } from 'lucide-react';
+
+import EPortalModal from './EPortalModal';
+import ChatModal from './ChatModal';
+import ComparisonModal from './ComparisonModal';
+import VendorRadarChart from './VendorRadarChart';
+import { generateProcurementPDF } from '../utils/exportReport';
 
 const Dashboard = () => {
   const [files, setFiles] = useState([]);
@@ -14,13 +20,21 @@ const Dashboard = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
-  // E-Portal Automation State
-  const [showModal, setShowModal] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState(null);
+  // Modal state
+  const [showEPortalModal, setShowEPortalModal] = useState(false);
+  const [selectedVendorForBid, setSelectedVendorForBid] = useState(null);
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [selectedVendorForChat, setSelectedVendorForChat] = useState(null);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
 
   const triggerAutomation = (vendor) => {
-    setSelectedVendor(vendor);
-    setShowModal(true);
+    setSelectedVendorForBid(vendor);
+    setShowEPortalModal(true);
+  };
+
+  const triggerChat = (vendor) => {
+    setSelectedVendorForChat(vendor);
+    setShowChatModal(true);
   };
 
   const handleFileChange = (e) => {
@@ -84,7 +98,7 @@ const Dashboard = () => {
           <Search size={28} />
         </div>
         <h1>Tender Guard</h1>
-        <p>AI-Powered Vendor Evaluation & Matching System</p>
+        <p>AI-Powered Vendor Evaluation &amp; Matching System</p>
       </header>
 
       {/* ── INPUT SECTION ── */}
@@ -96,7 +110,7 @@ const Dashboard = () => {
           </div>
           <textarea
             className="requirements-textarea"
-            placeholder="Enter your tender requirements here...&#10;&#10;Example: 500 laptops, 16GB RAM, SSD storage, fast delivery within 30 days, budget-friendly, ISO certified vendor preferred."
+            placeholder={`Enter your tender requirements here...\n\nExample: 500 laptops, 16GB RAM, SSD storage, fast delivery within 30 days, budget-friendly, ISO certified vendor preferred.`}
             value={requirements}
             onChange={(e) => { setRequirements(e.target.value); setError(null); }}
             rows={6}
@@ -135,7 +149,6 @@ const Dashboard = () => {
             </label>
           </div>
 
-          {/* ── Selected Files List ── */}
           {files.length > 0 && (
             <div className="selected-files-list">
               {files.map((file, index) => (
@@ -153,11 +166,7 @@ const Dashboard = () => {
         </div>
       </section>
 
-      <button
-        onClick={handleSubmit}
-        disabled={uploading}
-        className="submit-btn"
-      >
+      <button onClick={handleSubmit} disabled={uploading} className="submit-btn">
         {uploading ? (
           <>
             <Loader2 size={20} className="spin" />
@@ -166,7 +175,7 @@ const Dashboard = () => {
         ) : (
           <>
             <Search size={20} />
-            Evaluate & Match Vendors
+            Evaluate &amp; Match Vendors
           </>
         )}
       </button>
@@ -183,10 +192,27 @@ const Dashboard = () => {
       {result && (
         <section className="results-section">
           <div className="results-header">
-            <CheckCircle2 size={22} />
-            <div>
-              <h2>Top {result.top_vendors.length} Recommended Vendors</h2>
-              <p className="results-sub">{result.analysis_summary}</p>
+            <div className="results-header-left">
+              <CheckCircle2 size={22} />
+              <div>
+                <h2>Top {result.top_vendors.length} Recommended Vendors</h2>
+                <p className="results-sub">{result.analysis_summary}</p>
+              </div>
+            </div>
+            <div className="results-actions">
+              {result.top_vendors.length >= 2 && (
+                <button className="action-btn compare-btn" onClick={() => setShowComparisonModal(true)}>
+                  <BarChart2 size={16} />
+                  Compare All
+                </button>
+              )}
+              <button
+                className="action-btn export-btn"
+                onClick={() => generateProcurementPDF(result.top_vendors, requirements, result.analysis_summary)}
+              >
+                <Download size={16} />
+                Export Report
+              </button>
             </div>
           </div>
 
@@ -195,88 +221,104 @@ const Dashboard = () => {
               <div key={index} className={`vendor-card rank-${index + 1}`}>
                 <div className="vendor-rank">{getRankBadge(index)}</div>
 
-                <div className="vendor-header">
-                  <Building2 size={22} />
-                  <div>
-                    <h3>{vendor.company_name}</h3>
-                    {vendor.source_file && (
-                      <span className="source-file-tag">
-                        <FileText size={12} /> {vendor.source_file}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="score-section">
-                  <div className="score-bar-container">
-                    <div className="score-bar-bg">
-                      <div
-                        className="score-bar-fill"
-                        style={{
-                          width: `${vendor.match_score}%`,
-                          backgroundColor: getScoreColor(vendor.match_score)
-                        }}
-                      />
+                <div className="vendor-card-body">
+                  <div className="vendor-main">
+                    <div className="vendor-header">
+                      <Building2 size={22} />
+                      <div>
+                        <h3>{vendor.company_name}</h3>
+                        {vendor.source_file && (
+                          <span className="source-file-tag">
+                            <FileText size={12} /> {vendor.source_file}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <span className="score-label" style={{ color: getScoreColor(vendor.match_score) }}>
-                      {vendor.match_score}% Match
-                    </span>
+
+                    <div className="score-section">
+                      <div className="score-bar-container">
+                        <div className="score-bar-bg">
+                          <div
+                            className="score-bar-fill"
+                            style={{
+                              width: `${vendor.match_score}%`,
+                              backgroundColor: getScoreColor(vendor.match_score)
+                            }}
+                          />
+                        </div>
+                        <span className="score-label" style={{ color: getScoreColor(vendor.match_score) }}>
+                          {vendor.match_score}% Match
+                        </span>
+                      </div>
+                      <div className="success-rate">
+                        <TrendingUp size={14} />
+                        <span>{vendor.success_rate}% Success Rate</span>
+                      </div>
+                    </div>
+
+                    <div className="vendor-history">
+                      <h4>Past Project History</h4>
+                      <p>{vendor.past_history}</p>
+                    </div>
+
+                    <div className="pros-cons">
+                      <div className="pros">
+                        <h4><ThumbsUp size={14} /> Strengths</h4>
+                        <ul>
+                          {vendor.pros.map((pro, i) => (
+                            <li key={i}>
+                              <ChevronRight size={12} />
+                              {pro}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="cons">
+                        <h4><ThumbsDown size={14} /> Weaknesses</h4>
+                        <ul>
+                          {vendor.cons.map((con, i) => (
+                            <li key={i}>
+                              <ChevronRight size={12} />
+                              {con}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   </div>
-                  <div className="success-rate">
-                    <TrendingUp size={14} />
-                    <span>{vendor.success_rate}% Success Rate</span>
+
+                  {/* ── RADAR CHART ── */}
+                  <div className="vendor-radar">
+                    <VendorRadarChart vendor={vendor} />
                   </div>
                 </div>
 
-                <div className="vendor-history">
-                  <h4>Past Project History</h4>
-                  <p>{vendor.past_history}</p>
+                {/* ── ACTION BUTTONS ── */}
+                <div className="vendor-action-row">
+                  <button className="automate-btn" onClick={() => triggerAutomation(vendor)}>
+                    <Cpu size={15} />
+                    Automate Bidding
+                  </button>
+                  <button className="ask-ai-btn" onClick={() => triggerChat(vendor)}>
+                    <MessageSquare size={15} />
+                    Ask AI
+                  </button>
                 </div>
-
-                <div className="pros-cons">
-                  <div className="pros">
-                    <h4><ThumbsUp size={14} /> Strengths</h4>
-                    <ul>
-                      {vendor.pros.map((pro, i) => (
-                        <li key={i}>
-                          <ChevronRight size={12} />
-                          {pro}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="cons">
-                    <h4><ThumbsDown size={14} /> Weaknesses</h4>
-                    <ul>
-                      {vendor.cons.map((con, i) => (
-                        <li key={i}>
-                          <ChevronRight size={12} />
-                          {con}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <button 
-                  className="automate-btn"
-                  onClick={() => triggerAutomation(vendor)}
-                >
-                  <Cpu size={16} />
-                  Automate E-Portal Bidding
-                </button>
               </div>
             ))}
           </div>
         </section>
       )}
 
-      {/* ── RPA MODAL ── */}
-      {showModal && selectedVendor && (
-        <EPortalModal 
-          vendor={selectedVendor} 
-          onClose={() => setShowModal(false)} 
-        />
+      {/* ── MODALS ── */}
+      {showEPortalModal && selectedVendorForBid && (
+        <EPortalModal vendor={selectedVendorForBid} onClose={() => setShowEPortalModal(false)} />
+      )}
+      {showChatModal && selectedVendorForChat && (
+        <ChatModal vendor={selectedVendorForChat} onClose={() => setShowChatModal(false)} />
+      )}
+      {showComparisonModal && result && (
+        <ComparisonModal vendors={result.top_vendors} onClose={() => setShowComparisonModal(false)} />
       )}
     </div>
   );

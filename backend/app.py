@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
 
 from modules.parser import extract_text_from_pdf
-from modules.ai_model import evaluate_vendors_batch
+from modules.ai_model import evaluate_vendors_batch, ask_vendor_question
 
 # Configuration
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
@@ -21,8 +21,10 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -58,7 +60,7 @@ def upload_file():
     if not parsed_proposals:
         return jsonify({"error": "Could not parse any of the uploaded PDFs."}), 500
 
-    # ── Vendor Evaluation (Mocked AI) ──
+    # ── Vendor Evaluation via Gemini AI ──
     evaluation_result = evaluate_vendors_batch(user_requirements, parsed_proposals)
 
     return jsonify({
@@ -66,6 +68,30 @@ def upload_file():
         "files_processed": len(parsed_proposals),
         "evaluation": evaluation_result
     }), 200
+
+
+@app.route('/api/chat', methods=['POST'])
+def chat_with_vendor():
+    """
+    RAG endpoint: Answer a question about a specific vendor's proposal PDF.
+    Expects JSON: { "vendor_pdf_text": "...", "message": "..." }
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid JSON body."}), 400
+
+    pdf_text = data.get('vendor_pdf_text', '').strip()
+    message = data.get('message', '').strip()
+
+    if not message:
+        return jsonify({"error": "Please provide a question."}), 400
+    if not pdf_text:
+        return jsonify({"error": "No proposal text provided for this vendor."}), 400
+
+    reply = ask_vendor_question(pdf_text, message)
+
+    return jsonify({"reply": reply}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
