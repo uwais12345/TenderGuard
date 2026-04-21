@@ -698,6 +698,38 @@ body {
 .export-btn:hover { background: var(--success); color: white; transform: translateY(-1px); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
 
 /* ═══════════════════════════════════════════
+   FINANCIAL BID PANEL
+   ═══════════════════════════════════════════ */
+.financial-summary-banner { display: flex; align-items: flex-start; gap: 10px; background: rgba(245, 158, 11, 0.07); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; }
+.financial-summary-banner svg { color: var(--warning); flex-shrink: 0; margin-top: 2px; }
+.financial-summary-banner strong { color: var(--warning); }
+
+.financial-panel { background: #0d1321; border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-top: 16px; }
+.financial-panel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: var(--warning); }
+.financial-panel-header h4 { margin: 0; font-size: 0.9rem; font-weight: 700; flex: 1; color: var(--text-primary); }
+
+/* L-Rank Badges */
+.l-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+.l1 { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+.l2 { background: rgba(148, 163, 184, 0.1); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
+.l3 { background: rgba(180, 83, 9, 0.1); color: #d97706; border: 1px solid rgba(180, 83, 9, 0.25); }
+.l-unknown { background: rgba(100, 116, 139, 0.1); color: var(--text-muted); border: 1px solid rgba(100, 116, 139, 0.2); }
+
+.financial-no-data { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.85rem; font-style: italic; }
+.financial-no-data svg { flex-shrink: 0; color: var(--warning); }
+
+.financial-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fin-card { background: #111827; border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 3px; }
+.fin-card.primary-fin { border-color: rgba(245, 158, 11, 0.25); }
+.fin-card.total-fin { grid-column: span 2; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05); }
+.fin-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
+.fin-value { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.total-amount { color: var(--success); font-size: 1.1rem; }
+
+.fin-meta-row { grid-column: span 2; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.fin-meta-chip { display: flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.15); padding: 4px 10px; border-radius: 6px; font-size: 0.78rem; color: var(--text-secondary); }
+
+/* ═══════════════════════════════════════════
    RADAR CHART
    ═══════════════════════════════════════════ */
 .radar-chart-wrapper { background: #0d1321; border-radius: 14px; padding: 16px; border: 1px solid var(--border); }

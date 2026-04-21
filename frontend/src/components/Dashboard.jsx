@@ -4,13 +4,14 @@ import {
   Upload, Search, Building2, TrendingUp,
   ThumbsUp, ThumbsDown, Loader2, FileText,
   AlertCircle, CheckCircle2, ChevronRight, X, Files,
-  Cpu, MessageSquare, BarChart2, Download
+  Cpu, MessageSquare, BarChart2, Download, IndianRupee
 } from 'lucide-react';
 
 import EPortalModal from './EPortalModal';
 import ChatModal from './ChatModal';
 import ComparisonModal from './ComparisonModal';
 import VendorRadarChart from './VendorRadarChart';
+import FinancialBidPanel from './FinancialBidPanel';
 import { generateProcurementPDF } from '../utils/exportReport';
 
 const Dashboard = () => {
@@ -216,6 +217,14 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* ── FINANCIAL SUMMARY BANNER ── */}
+          {result.financial_summary && (
+            <div className="financial-summary-banner">
+              <IndianRupee size={16} />
+              <span><strong>Financial Bid Analysis:</strong> {result.financial_summary}</span>
+            </div>
+          )}
+
           <div className="vendors-grid">
             {result.top_vendors.map((vendor, index) => (
               <div key={index} className={`vendor-card rank-${index + 1}`}>
@@ -286,6 +295,10 @@ const Dashboard = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* ── FINANCIAL BID PANEL ── */}
+                  <FinancialBidPanel vendor={vendor} />
+                </div>
 
                   {/* ── RADAR CHART ── */}
                   <div className="vendor-radar">
