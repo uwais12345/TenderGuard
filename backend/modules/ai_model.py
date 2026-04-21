@@ -98,6 +98,14 @@ Extract from each proposal:
   - bid_validity_days: bid validity period in days as number (null if not found)
   - l_rank: 1 for lowest bid (L1), 2 for second lowest (L2), 3 for third (L3), null if price unknown
 
+CLAUSE-BY-CLAUSE COMPLIANCE MATRIX (Critical for technical evaluation):
+Extract individual mandatory requirements from the User/Tender Requirements.
+For each vendor, evaluate against every extracted requirement.
+  - 'clause': The specific requirement (e.g., "Must have ISO 27001", "Turnover > $1M")
+  - 'status': "PASS", "FAIL", or "PARTIAL"
+  - 'rationale': Brief explanation of why they passed or failed based solely on the text
+  - 'excerpt': A short, direct quote from their proposal proving the status (or "Not mentioned" if absent)
+
 Sort top_vendors by match_score descending. Return at most 3 vendors.
 
 Return EXACTLY this JSON schema:
@@ -125,7 +133,15 @@ Return EXACTLY this JSON schema:
       "payment_terms": "30% advance, 70% on delivery",
       "delivery_days": 15,
       "bid_validity_days": 90,
-      "l_rank": 1
+      "l_rank": 1,
+      "compliance_matrix": [
+        {{
+          "clause": "string",
+          "status": "PASS/FAIL/PARTIAL",
+          "rationale": "string",
+          "excerpt": "string"
+        }}
+      ]
     }}
   ],
   "analysis_summary": "string",
@@ -184,3 +200,50 @@ Provide a concise, accurate, and professional answer."""
     except Exception as e:
         print(f"Gemini Chat Error: {e}")
         return f"Failed to generate answer: {str(e)}"
+
+def analyze_tender_bias(draft_tender_text):
+    """
+    Vigilance Officer Tool: Analyzes a draft tender document for bias, brand-locking, and restrictive clauses.
+    Returns a JSON object with restrictive score and flagged clauses.
+    """
+    try:
+        model = _get_json_model()
+    except Exception as e:
+        return {"error": str(e)}
+
+    prompt = f"""
+You are a strict Government Vigilance and Procurement Audit Officer.
+Your task is to analyze the following draft tender document written by a procurement department BEFORE it is published to the public.
+You are looking for ANY signs of bias, brand-lock, overly restrictive technical criteria, or unjustified vendor exclusion.
+
+Examples of restrictive clauses:
+- Mentioning a specific brand (e.g., "Intel Processor", "Apple iPad", "Cisco Router") instead of generic specs ("8-core x86 processor", "Tablet", "Enterprise Router").
+- Extremely specific dimensions or weights that serve no functional purpose but match exactly one manufacturer's product.
+- Unreasonably high turnover requirements or past experience requirements that exclude competent MSMEs.
+- Asking for a specific proprietary certification when a general equivalent exists.
+
+Draft Tender Document:
+'''
+{draft_tender_text[:15000]}
+'''
+
+Analyze the document and return a JSON object EXACTLY matching this schema:
+{{
+  "restrictive_score": 0, // 0 to 100. 0 = perfectly neutral, 100 = highly biased/restrictive
+  "overall_assessment": "Short 2 sentence summary of the fairness of this tender.",
+  "flagged_clauses": [
+    {{
+      "clause": "The exact sentence from the text",
+      "issue_type": "Brand Lock" | "Overly Restrictive Spec" | "Unjustified Barrier",
+      "explanation": "Why this is a problem",
+      "suggestion": "How to rewrite it generically"
+    }}
+  ]
+}}
+"""
+    try:
+        response = model.generate_content(prompt)
+        return json.loads(response.text)
+    except Exception as e:
+        print(f"Gemini Bias Checker Error: {e}")
+        return {"error": str(e)}

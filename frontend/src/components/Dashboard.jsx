@@ -4,7 +4,7 @@ import {
   Upload, Search, Building2, TrendingUp,
   ThumbsUp, ThumbsDown, Loader2, FileText,
   AlertCircle, CheckCircle2, ChevronRight, X, Files,
-  Cpu, MessageSquare, BarChart2, Download, IndianRupee
+  Cpu, MessageSquare, BarChart2, Download, IndianRupee, ClipboardList, User
 } from 'lucide-react';
 
 import EPortalModal from './EPortalModal';
@@ -12,6 +12,8 @@ import ChatModal from './ChatModal';
 import ComparisonModal from './ComparisonModal';
 import VendorRadarChart from './VendorRadarChart';
 import FinancialBidPanel from './FinancialBidPanel';
+import ComplianceMatrix from './ComplianceMatrix';
+import AuditLogModal from './AuditLogModal';
 import { generateProcurementPDF } from '../utils/exportReport';
 
 const Dashboard = () => {
@@ -27,6 +29,8 @@ const Dashboard = () => {
   const [showChatModal, setShowChatModal] = useState(false);
   const [selectedVendorForChat, setSelectedVendorForChat] = useState(null);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [showAuditModal, setShowAuditModal] = useState(false);
+  const [officerName, setOfficerName] = useState('');
 
   const triggerAutomation = (vendor) => {
     setSelectedVendorForBid(vendor);
@@ -64,6 +68,7 @@ const Dashboard = () => {
 
     const formData = new FormData();
     formData.append('user_requirements', requirements);
+    formData.append('officer_name', officerName || 'Anonymous');
     files.forEach((file) => {
       formData.append('files', file);
     });
@@ -100,6 +105,10 @@ const Dashboard = () => {
         </div>
         <h1>Tender Guard</h1>
         <p>AI-Powered Vendor Evaluation &amp; Matching System</p>
+        <button className="audit-log-btn" onClick={() => setShowAuditModal(true)}>
+          <ClipboardList size={16} />
+          Audit Log
+        </button>
       </header>
 
       {/* ── INPUT SECTION ── */}
@@ -166,6 +175,18 @@ const Dashboard = () => {
           )}
         </div>
       </section>
+
+      {/* ── OFFICER NAME ── */}
+      <div className="officer-name-row">
+        <User size={16} />
+        <input
+          type="text"
+          className="officer-input"
+          placeholder="Officer / Evaluator Name (for audit trail)"
+          value={officerName}
+          onChange={(e) => setOfficerName(e.target.value)}
+        />
+      </div>
 
       <button onClick={handleSubmit} disabled={uploading} className="submit-btn">
         {uploading ? (
@@ -294,11 +315,13 @@ const Dashboard = () => {
                         </ul>
                       </div>
                     </div>
-                  </div>
 
-                  {/* ── FINANCIAL BID PANEL ── */}
-                  <FinancialBidPanel vendor={vendor} />
-                </div>
+                    {/* ── FINANCIAL BID PANEL ── */}
+                    <FinancialBidPanel vendor={vendor} />
+
+                    {/* ── COMPLIANCE MATRIX ── */}
+                    <ComplianceMatrix vendor={vendor} />
+                  </div>
 
                   {/* ── RADAR CHART ── */}
                   <div className="vendor-radar">
@@ -332,6 +355,9 @@ const Dashboard = () => {
       )}
       {showComparisonModal && result && (
         <ComparisonModal vendors={result.top_vendors} onClose={() => setShowComparisonModal(false)} />
+      )}
+      {showAuditModal && (
+        <AuditLogModal onClose={() => setShowAuditModal(false)} />
       )}
     </div>
   );

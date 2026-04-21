@@ -4,3 +4,7 @@ werkzeug
 PyPDF2
 google-generativeai
 python-dotenv
+pymongo[srv]
+certifi
+pdf2image
+pytesseract
