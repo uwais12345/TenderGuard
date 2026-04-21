@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import EPortalModal from './EPortalModal';
 import {
   Upload, Search, Building2, TrendingUp,
   ThumbsUp, ThumbsDown, Loader2, FileText,
-  AlertCircle, CheckCircle2, ChevronRight, X, Files
+  AlertCircle, CheckCircle2, ChevronRight, X, Files, Cpu
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -12,6 +13,15 @@ const Dashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+
+  // E-Portal Automation State
+  const [showModal, setShowModal] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState(null);
+
+  const triggerAutomation = (vendor) => {
+    setSelectedVendor(vendor);
+    setShowModal(true);
+  };
 
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files);
@@ -247,10 +257,26 @@ const Dashboard = () => {
                     </ul>
                   </div>
                 </div>
+
+                <button 
+                  className="automate-btn"
+                  onClick={() => triggerAutomation(vendor)}
+                >
+                  <Cpu size={16} />
+                  Automate E-Portal Bidding
+                </button>
               </div>
             ))}
           </div>
         </section>
+      )}
+
+      {/* ── RPA MODAL ── */}
+      {showModal && selectedVendor && (
+        <EPortalModal 
+          vendor={selectedVendor} 
+          onClose={() => setShowModal(false)} 
+        />
       )}
     </div>
   );
