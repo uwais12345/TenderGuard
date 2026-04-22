@@ -35,6 +35,46 @@ def _generate_text(prompt):
         config=config
     )
 
+def compress_proposal(text):
+    """
+    Compresses a raw PDF text into a dense, signal-rich summary for evaluation.
+    This prevents the AI from truncating long documents and missing critical data.
+    """
+    # If it's already short enough, don't waste API calls
+    if len(text) < 3000:
+        return text
+        
+    prompt = f"""
+You are an expert Procurement Data Extractor.
+The following text is raw, potentially noisy text extracted from a vendor's proposal PDF. It may be very long.
+Your job is to compress this document into a dense summary containing ONLY the critical information needed for a procurement officer to evaluate the bid.
+
+EXTRACT AND SUMMARIZE THE FOLLOWING:
+1. Company Name & Background
+2. Financial Bid Details (Total price, unit price, taxes, currency)
+3. Delivery terms, timelines, and payment terms
+4. Compliance & Certifications (ISO, MSME, etc.)
+5. Past Projects & Experience relevant to the bid
+6. Specific technical specifications of the product/service offered
+7. Pros, strengths, or value-adds
+8. Cons, limitations, or deviations from standard terms
+
+Do NOT include fluff, marketing talk, or filler words. Use bullet points and keep it as dense as possible.
+
+Raw Text:
+'''
+{text}
+'''
+"""
+    try:
+        response = _generate_text(prompt)
+        return response.text
+    except Exception as e:
+        print(f"Compression error: {e}")
+        # Fallback to truncated text if compression fails
+        return text[:8000]
+
+
 
 def evaluate_vendors_batch(user_requirements_text, parsed_proposals):
     """
@@ -55,9 +95,11 @@ def evaluate_vendors_batch(user_requirements_text, parsed_proposals):
     proposals_context = []
     parsed_text_map = {}
     for prop in parsed_proposals:
+        print(f"Compressing document: {prop['filename']}...")
+        compressed_text = compress_proposal(prop["parsed_text"])
         proposals_context.append({
             "filename": prop["filename"],
-            "document_content": prop["parsed_text"]
+            "document_content": compressed_text
         })
         parsed_text_map[prop["filename"]] = prop["parsed_text"]
 
@@ -290,3 +332,108 @@ Generate the full Markdown document now:
     except Exception as e:
         print(f"Gemini Generative Tender Error: {e}")
         return f"Failed to generate tender: {str(e)}"
+
+def score_tender_eligibility(tender_metadata, vendor_profile):
+    """
+    Analyzes a fetched TN Tender against a vendor profile to determine Go/No-Go eligibility.
+    """
+    try:
+        _get_genai_client()
+    except Exception as e:
+        return {"error": str(e)}
+
+    prompt = f"""
+You are an expert Procurement Bid/No-Bid Analyst.
+Your task is to analyze a live government tender requirement and compare it against the user's Vendor Profile to output an eligibility score.
+
+Tender Details:
+'''
+Title: {tender_metadata.get('title', 'Unknown')}
+Reference No: {tender_metadata.get('id', 'Unknown')}
+'''
+
+Vendor Profile:
+'''
+{vendor_profile}
+'''
+
+Determine a 'Go/No-Go' eligibility score (0-100%) and provide a brief rationale explaining why they are or are not a good fit for this tender based purely on the title and any inferred typical requirements for this type of tender.
+
+Return EXACTLY this JSON schema:
+{{
+  "eligibility_score": 0,
+  "decision": "GO" | "NO-GO" | "MARGINAL",
+  "rationale": "Brief 2-3 sentence explanation",
+  "missing_requirements": ["list of likely missing certs or capacity, if any"]
+}}
+"""
+    try:
+        response = _generate_json(prompt)
+        return json.loads(response.text)
+    except Exception as e:
+        print(f"Gemini Eligibility Scoring Error: {e}")
+        return {"error": str(e)}
+
+def generate_risk_report(vendor_data):
+    """
+    Generates a deep risk assessment report for a vendor based on their evaluation data.
+    Covers financial, operational, compliance, and geopolitical risk dimensions.
+    """
+    try:
+        _get_genai_client()
+    except Exception as e:
+        return {"error": str(e)}
+
+    prompt = f"""
+You are a Senior Procurement Risk Analyst for the Tamil Nadu Government.
+Your job is to generate a comprehensive risk assessment report for the following vendor
+based on their evaluation data.
+
+Vendor Data:
+'''
+Company Name: {vendor_data.get('company_name', 'Unknown')}
+Match Score: {vendor_data.get('match_score', 'N/A')}%
+Success Rate: {vendor_data.get('success_rate', 'N/A')}%
+Past History: {vendor_data.get('past_history', 'Not provided')}
+Pros: {json.dumps(vendor_data.get('pros', []))}
+Cons: {json.dumps(vendor_data.get('cons', []))}
+Financial Bid Value: {vendor_data.get('total_bid_value', 'Not disclosed')}
+Delivery Days: {vendor_data.get('delivery_days', 'Not specified')}
+Compliance Score: {vendor_data.get('compliance_score', 'N/A')}
+'''
+
+Generate a structured risk report with these 4 risk dimensions:
+1. Financial Risk - Can they deliver within budget? Are they financially stable?
+2. Delivery / Operational Risk - Can they meet timelines? Any capacity concerns?
+3. Compliance Risk - Are there regulatory or certification gaps?
+4. Reputational Risk - Based on past history, any red flags?
+
+For each risk, assign:
+- risk_level: "LOW", "MEDIUM", or "HIGH"
+- risk_score: 0-100 (higher = more risky)
+- summary: 1-2 sentence assessment
+
+Also provide:
+- overall_risk_score: 0-100 (weighted average)
+- overall_risk_level: "LOW", "MEDIUM", or "HIGH"
+- top_recommendation: One clear action the procurement officer should take
+
+Return EXACTLY this JSON schema:
+{{
+  "overall_risk_score": 35,
+  "overall_risk_level": "MEDIUM",
+  "top_recommendation": "string",
+  "dimensions": {{
+    "financial": {{ "risk_level": "LOW", "risk_score": 20, "summary": "string" }},
+    "delivery": {{ "risk_level": "MEDIUM", "risk_score": 45, "summary": "string" }},
+    "compliance": {{ "risk_level": "LOW", "risk_score": 15, "summary": "string" }},
+    "reputational": {{ "risk_level": "HIGH", "risk_score": 70, "summary": "string" }}
+  }}
+}}
+"""
+    try:
+        response = _generate_json(prompt)
+        return json.loads(response.text)
+    except Exception as e:
+        print(f"Gemini Risk Report Error: {e}")
+        return {"error": str(e)}

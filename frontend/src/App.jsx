@@ -3,7 +3,10 @@ import Dashboard from './components/Dashboard';
 import BiasCheckerDashboard from './components/BiasCheckerDashboard';
 import TenderDrafter from './components/TenderDrafter';
 import VendorDirectory from './components/VendorDirectory';
-import { Search, Scale, PenTool, Database } from 'lucide-react';
+import TNTendersPortal from './components/TNTendersPortal';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+import MarketIntelDashboard from './components/MarketIntelDashboard';
+import { Search, Scale, PenTool, Database, Radar, BarChart2, Globe } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('vendor');
@@ -35,6 +38,24 @@ function App() {
         >
           <Database size={18} /> Vendor Directory
         </button>
+        <button 
+          className={`nav-tab ${activeTab === 'tntenders' ? 'active' : ''}`}
+          onClick={() => setActiveTab('tntenders')}
+        >
+          <Radar size={18} /> TN Tenders Portal
+        </button>
+        <button 
+          className={`nav-tab ${activeTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => setActiveTab('analytics')}
+        >
+          <BarChart2 size={18} /> Analytics
+        </button>
+        <button 
+          className={`nav-tab ${activeTab === 'market' ? 'active' : ''}`}
+          onClick={() => setActiveTab('market')}
+        >
+          <Globe size={18} /> Market Intel
+        </button>
       </div>
 
       <div style={{ display: activeTab === 'vendor' ? 'block' : 'none' }}>
@@ -48,6 +69,15 @@ function App() {
       </div>
       <div style={{ display: activeTab === 'directory' ? 'block' : 'none' }}>
         <VendorDirectory />
+      </div>
+      <div style={{ display: activeTab === 'tntenders' ? 'block' : 'none' }}>
+        <TNTendersPortal />
+      </div>
+      <div style={{ display: activeTab === 'analytics' ? 'block' : 'none' }}>
+        <AnalyticsDashboard />
+      </div>
+      <div style={{ display: activeTab === 'market' ? 'block' : 'none' }}>
+        <MarketIntelDashboard />
       </div>
     </div>
   )

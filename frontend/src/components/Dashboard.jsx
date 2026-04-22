@@ -4,7 +4,7 @@ import {
   Upload, Search, Building2, TrendingUp,
   ThumbsUp, ThumbsDown, Loader2, FileText,
   AlertCircle, CheckCircle2, ChevronRight, X, Files,
-  Cpu, MessageSquare, BarChart2, Download, IndianRupee, ClipboardList, User
+  Cpu, MessageSquare, BarChart2, Download, IndianRupee, ClipboardList, User, ShieldAlert, History
 } from 'lucide-react';
 
 import EPortalModal from './EPortalModal';
@@ -14,6 +14,8 @@ import VendorRadarChart from './VendorRadarChart';
 import FinancialBidPanel from './FinancialBidPanel';
 import ComplianceMatrix from './ComplianceMatrix';
 import AuditLogModal from './AuditLogModal';
+import RiskReportModal from './RiskReportModal';
+import SessionHistoryDrawer from './SessionHistoryDrawer';
 import { generateProcurementPDF } from '../utils/exportReport';
 
 const Dashboard = () => {
@@ -30,6 +32,9 @@ const Dashboard = () => {
   const [selectedVendorForChat, setSelectedVendorForChat] = useState(null);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [showAuditModal, setShowAuditModal] = useState(false);
+  const [showRiskModal, setShowRiskModal] = useState(false);
+  const [selectedVendorForRisk, setSelectedVendorForRisk] = useState(null);
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
   const [officerName, setOfficerName] = useState('');
 
   const triggerAutomation = (vendor) => {
@@ -40,6 +45,11 @@ const Dashboard = () => {
   const triggerChat = (vendor) => {
     setSelectedVendorForChat(vendor);
     setShowChatModal(true);
+  };
+
+  const triggerRiskReport = (vendor) => {
+    setSelectedVendorForRisk(vendor);
+    setShowRiskModal(true);
   };
 
   const handleFileChange = (e) => {
@@ -85,10 +95,29 @@ const Dashboard = () => {
     }
   };
 
+  const handleRestoreSession = async (eval_id) => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/evaluation/${eval_id}`);
+      const data = res.data;
+      setResult({
+        top_vendors: data.top_vendors,
+        total_evaluated: data.total_evaluated || data.top_vendors.length,
+        analysis_summary: data.analysis_summary,
+        financial_summary: data.financial_summary
+      });
+      setRequirements(data.requirements || '');
+      setOfficerName(data.officer_name || '');
+      setShowHistoryDrawer(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setError("Failed to restore session.");
+    }
+  };
+
   const getScoreColor = (score) => {
-    if (score >= 90) return '#10b981';
-    if (score >= 80) return '#3b82f6';
-    return '#f59e0b';
+    if (score >= 90) return '#ffffff';
+    if (score >= 80) return '#dc2626';
+    return '#dc2626';
   };
 
   const getRankBadge = (index) => {
@@ -105,10 +134,16 @@ const Dashboard = () => {
         </div>
         <h1>Tender Guard</h1>
         <p>AI-Powered Vendor Evaluation &amp; Matching System</p>
-        <button className="audit-log-btn" onClick={() => setShowAuditModal(true)}>
-          <ClipboardList size={16} />
-          Audit Log
-        </button>
+        <div style={{ position: 'absolute', top: '24px', right: '32px', display: 'flex', gap: '12px' }}>
+          <button className="audit-log-btn" style={{ background: '#111', border: '1px solid #333' }} onClick={() => setShowHistoryDrawer(true)}>
+            <History size={16} />
+            History
+          </button>
+          <button className="audit-log-btn" onClick={() => setShowAuditModal(true)}>
+            <ClipboardList size={16} />
+            Audit Log
+          </button>
+        </div>
       </header>
 
       {/* ── INPUT SECTION ── */}
@@ -214,7 +249,7 @@ const Dashboard = () => {
       {uploading && (
         <div className="vendors-grid" style={{ marginTop: '30px' }}>
           {[1, 2].map(n => (
-            <div key={n} className="vendor-card" style={{ height: '350px', background: 'rgba(30, 41, 59, 0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div key={n} className="vendor-card" style={{ height: '350px', background: 'rgba(51, 51, 51, 0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
               <div className="vendor-header" style={{ borderBottom: 'none' }}>
                 <div style={{ flex: 1 }}>
                   <div className="skeleton-line" style={{ width: '60%', height: '24px' }}></div>
@@ -369,6 +404,21 @@ const Dashboard = () => {
                     <MessageSquare size={15} />
                     Ask AI
                   </button>
+                  <button
+                    onClick={() => triggerRiskReport(vendor)}
+                    style={{
+                      background: 'rgba(220,38,38,0.08)', color: '#dc2626',
+                      border: '1px solid rgba(220,38,38,0.25)', padding: '8px 16px',
+                      borderRadius: '8px', fontWeight: 600, fontSize: '0.85rem',
+                      cursor: 'pointer', transition: 'all 0.2s',
+                      display: 'flex', alignItems: 'center', gap: '8px', flex: 1, justifyContent: 'center'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.08)'; e.currentTarget.style.color = '#dc2626'; }}
+                  >
+                    <ShieldAlert size={15} />
+                    Risk Report
+                  </button>
                 </div>
               </div>
             ))}
@@ -389,6 +439,14 @@ const Dashboard = () => {
       {showAuditModal && (
         <AuditLogModal onClose={() => setShowAuditModal(false)} />
       )}
+      {showRiskModal && selectedVendorForRisk && (
+        <RiskReportModal vendor={selectedVendorForRisk} onClose={() => setShowRiskModal(false)} />
+      )}
+      <SessionHistoryDrawer 
+        isOpen={showHistoryDrawer} 
+        onClose={() => setShowHistoryDrawer(false)} 
+        onRestore={handleRestoreSession} 
+      />
     </div>
   );
 };

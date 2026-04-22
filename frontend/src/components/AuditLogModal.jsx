@@ -3,10 +3,10 @@ import { X, ClipboardList, RefreshCw, User, Clock, FileText, Building2, IndianRu
 import axios from 'axios';
 
 const ACTION_LABELS = {
-  EVALUATION: { label: 'Evaluation', color: '#10b981' },
-  PDF_CHAT: { label: 'PDF Chat', color: '#6366f1' },
-  EXPORT: { label: 'Export', color: '#f59e0b' },
-  BID_AUTOMATION: { label: 'Bid Automated', color: '#3b82f6' },
+  EVALUATION: { label: 'Evaluation', color: '#ffffff' },
+  PDF_CHAT: { label: 'PDF Chat', color: '#dc2626' },
+  EXPORT: { label: 'Export', color: '#dc2626' },
+  BID_AUTOMATION: { label: 'Bid Automated', color: '#dc2626' },
 };
 
 const formatDate = (isoString) => {
@@ -183,14 +183,14 @@ const AuditLogModal = ({ onClose }) => {
                           <td>
                             {topVendor ? (
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <CheckCircle2 size={12} style={{ color: '#10b981' }} />
+                                <CheckCircle2 size={12} style={{ color: '#ffffff' }} />
                                 <span style={{ color: '#f1f5f9', fontWeight: 600 }}>{topVendor.company_name}</span>
                               </div>
                             ) : '—'}
                           </td>
                           <td>
                             {l1Vendor?.total_bid_value ? (
-                              <div className="action-pill" style={{ color: '#f59e0b', borderColor: '#f59e0b' }}>
+                              <div className="action-pill" style={{ color: '#dc2626', borderColor: '#dc2626' }}>
                                 <IndianRupee size={11} />
                                 {formatCurrencyShort(l1Vendor.total_bid_value)}
                               </div>

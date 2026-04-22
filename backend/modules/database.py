@@ -5,6 +5,7 @@ import certifi
 try:
     from pymongo import MongoClient
     from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
+    from bson.objectid import ObjectId
     MONGO_AVAILABLE = True
 except ImportError:
     MONGO_AVAILABLE = False
@@ -140,7 +141,7 @@ def get_evaluation_history(limit=20):
     try:
         docs = list(
             db["evaluations"]
-            .find({}, {"_id": 0, "requirements": 1, "officer_name": 1,
+            .find({}, {"requirements": 1, "officer_name": 1,
                        "timestamp": 1, "files_processed": 1,
                        "analysis_summary": 1, "financial_summary": 1,
                        "top_vendors.company_name": 1, "top_vendors.match_score": 1,
@@ -149,12 +150,32 @@ def get_evaluation_history(limit=20):
             .limit(limit)
         )
         for doc in docs:
+            if "_id" in doc:
+                doc["_id"] = str(doc["_id"])
             if "timestamp" in doc:
                 doc["timestamp"] = doc["timestamp"].isoformat() + "Z"
         return docs
     except Exception as e:
         print(f"DB get_evaluation_history error: {e}")
         return []
+
+def get_full_evaluation(eval_id):
+    """Fetch a complete evaluation by its ID."""
+    db = get_db()
+    if db is None:
+        return None
+
+    try:
+        doc = db["evaluations"].find_one({"_id": ObjectId(eval_id)})
+        if doc:
+            doc["_id"] = str(doc["_id"])
+            if "timestamp" in doc:
+                doc["timestamp"] = doc["timestamp"].isoformat() + "Z"
+            return doc
+        return None
+    except Exception as e:
+        print(f"DB get_full_evaluation error: {e}")
+        return None
 
 def get_vendor_stats():
     """

@@ -18,7 +18,7 @@ const VendorRadarChart = ({ vendor }) => {
       <h4 className="radar-title">Performance Radar</h4>
       <ResponsiveContainer width="100%" height={220}>
         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
-          <PolarGrid stroke="#1e293b" />
+          <PolarGrid stroke="#333333" />
           <PolarAngleAxis
             dataKey="subject"
             tick={{ fill: '#94a3b8', fontSize: 12, fontFamily: 'Inter, sans-serif' }}
@@ -32,15 +32,15 @@ const VendorRadarChart = ({ vendor }) => {
           <Radar
             name={vendor.company_name}
             dataKey="value"
-            stroke="#3b82f6"
-            fill="#3b82f6"
+            stroke="#dc2626"
+            fill="#dc2626"
             fillOpacity={0.25}
             strokeWidth={2}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#111827',
-              border: '1px solid #1e293b',
+              backgroundColor: '#111111',
+              border: '1px solid #333333',
               borderRadius: '8px',
               color: '#f1f5f9',
               fontSize: '13px'

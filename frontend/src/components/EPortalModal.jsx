@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { Bot, Terminal, ShieldCheck, FileCheck, CircleDashed, CheckCircle2, ChevronRight, X, Copy } from 'lucide-react';
 
 const STEPS = [
-  { id: 'connect', title: 'Connecting to e-Procurement Portal', icon: ShieldCheck, time: 2000 },
-  { id: 'auth', title: 'Authenticating Sub-Broker Credentials', icon: ShieldCheck, time: 1800 },
-  { id: 'payload', title: 'Compiling Submission Payload (XML)', icon: FileCheck, time: 2500 },
-  { id: 'submit', title: 'Transmitting Vendor Smart Contract', icon: Bot, time: 3000 },
+  { id: 'connect', title: 'Connecting to tntenders.gov.in/nicgep', icon: ShieldCheck, time: 2000 },
+  { id: 'auth', title: 'Authenticating via e-Mudhra DSC', icon: ShieldCheck, time: 1800 },
+  { id: 'payload', title: 'Encrypting Financial Bid (BoQ) & Tech Specs', icon: FileCheck, time: 2500 },
+  { id: 'submit', title: 'Transmitting to Tamil Nadu NIC Server', icon: Bot, time: 3000 },
 ];
 
 const TERMINAL_LOGS = [
-  "> [SYSTEM] Initializing RPA framework...",
-  "> [AUTH] TLS handshake successful. 256-bit AES.",
-  "> [AUTH] Logging into Government e-Marketplace...",
-  "> [SESSION] Token generated: x-bid-token-9381",
-  "> [DATA] Extracting vendor constraints...",
-  "> [DATA] Compiling Bill of Materials (BOM)...",
-  "> [VALIDATION] Cross-checking DGS&D compliance... OK",
-  "> [NETWORK] Transmitting 4.2MB encrypted payload...",
-  "> [NETWORK] Waiting for portal acknowledgment...",
-  "> [SUCCESS] HTTP 201 Created. Bid successfully lodged."
+  "> [SYSTEM] Initializing NICGEP connectivity protocol...",
+  "> [AUTH] TLS handshake with tntenders.gov.in successful.",
+  "> [AUTH] Verifying Digital Signature Certificate (Class 3)...",
+  "> [SESSION] Token generated for TN-Tender Portal session.",
+  "> [DATA] Extracting Technical Specifications matrix...",
+  "> [DATA] Compiling Bill of Quantities (BoQ) Excel format...",
+  "> [VALIDATION] Cross-checking Tamil Nadu Transparency in Tenders Act compliance... OK",
+  "> [NETWORK] Transmitting encrypted payload to NIC servers...",
+  "> [NETWORK] Waiting for portal acknowledgment receipt...",
+  "> [SUCCESS] HTTP 201 Created. Bid successfully lodged on TN Tenders."
 ];
 
 const EPortalModal = ({ vendor, onClose }) => {
@@ -76,7 +76,7 @@ const EPortalModal = ({ vendor, onClose }) => {
               <Bot size={24} className="bot-icon animate-pulse" />
             </div>
             <div>
-              <h3>E-Portal Bidding Automation</h3>
+              <h3>TNTenders e-Procurement Sync</h3>
               <p>Vendor: <strong>{vendor.company_name}</strong></p>
             </div>
           </div>
@@ -91,7 +91,7 @@ const EPortalModal = ({ vendor, onClose }) => {
             <div className="completion-state">
               <CheckCircle2 size={64} className="success-check" />
               <h2>Bid Successfully Automated</h2>
-              <p>The vendor proposal has been digitally locked on the government portal.</p>
+              <p>The vendor proposal has been digitally locked on the Tamil Nadu e-Procurement portal.</p>
               
               <div className="ref-card">
                 <span className="ref-label">Official Bid Reference ID</span>

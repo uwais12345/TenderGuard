@@ -10,8 +10,10 @@ app = Flask(__name__)
 CORS(app)
 
 from modules.parser import extract_text_from_pdf
-from modules.ai_model import evaluate_vendors_batch, ask_vendor_question, analyze_tender_bias, generate_tender
-from modules.database import save_evaluation, write_audit_log, get_audit_logs, get_evaluation_history, get_vendor_stats
+from modules.ai_model import evaluate_vendors_batch, ask_vendor_question, analyze_tender_bias, generate_tender, score_tender_eligibility, generate_risk_report
+from modules.database import save_evaluation, write_audit_log, get_audit_logs, get_evaluation_history, get_vendor_stats, get_full_evaluation
+from modules.tn_tenders import fetch_active_tenders, fetch_debarment_list, check_vendor_against_debarment
+from modules.market_intel import fetch_all_market_tenders
 
 # Configuration
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
@@ -186,6 +188,99 @@ def fetch_vendors():
     """Vendor Reputation Engine: Return aggregated vendor track record."""
     stats = get_vendor_stats()
     return jsonify({"vendor_stats": stats}), 200
+
+@app.route('/api/tn-tenders/active', methods=['GET'])
+def get_tn_tenders():
+    """Fetch live active tenders from TN Tenders Portal."""
+    tenders = fetch_active_tenders()
+    return jsonify({"tenders": tenders}), 200
+
+@app.route('/api/tn-tenders/score', methods=['POST'])
+def score_tn_tender():
+    """Score a TN tender against a vendor profile."""
+    data = request.get_json()
+    if not data or 'tender' not in data:
+        return jsonify({"error": "No tender data provided."}), 400
+        
+    tender = data['tender']
+    vendor_profile = data.get('vendor_profile', 'Standard General Contractor Profile: ISO 9001 certified, $5M turnover, experience in general supplies and services.')
+    
+    score_result = score_tender_eligibility(tender, vendor_profile)
+    return jsonify(score_result), 200
+
+@app.route('/api/risk-report', methods=['POST'])
+def get_risk_report():
+    """Generate a risk assessment report for a given vendor."""
+    data = request.get_json()
+    if not data or 'vendor' not in data:
+        return jsonify({"error": "No vendor data provided."}), 400
+    
+    report = generate_risk_report(data['vendor'])
+    return jsonify(report), 200
+
+@app.route('/api/check-debarment', methods=['POST'])
+def check_debarment():
+    """Check if a vendor name appears on the TN Tenders debarment/blacklist."""
+    data = request.get_json()
+    if not data or 'vendor_name' not in data:
+        return jsonify({"error": "No vendor name provided."}), 400
+    
+    debarment_list = fetch_debarment_list()
+    matches = check_vendor_against_debarment(data['vendor_name'], debarment_list)
+    return jsonify({
+        "vendor_name": data['vendor_name'],
+        "is_blacklisted": len(matches) > 0,
+        "matches": matches,
+        "total_debarred_in_db": len(debarment_list)
+    }), 200
+
+@app.route('/api/analytics', methods=['GET'])
+def get_analytics():
+    """Return aggregated analytics for the TenderGuard dashboard."""
+    history = get_evaluation_history(limit=100)
+    logs = get_audit_logs(limit=100)
+    stats = get_vendor_stats()
+    
+    total_evaluations = len(history)
+    total_vendors_evaluated = sum(h.get('vendor_count', 0) for h in history)
+    total_bids_automated = sum(1 for l in logs if l.get('action') == 'BID_AUTOMATION')
+    total_bias_checks = sum(1 for l in logs if l.get('action') == 'BIAS_CHECK')
+    total_drafts = sum(1 for l in logs if l.get('action') == 'TENDER_DRAFT')
+    
+    # Top evaluated vendors
+    top_vendors = stats[:5] if stats else []
+    
+    return jsonify({
+        "total_evaluations": total_evaluations,
+        "total_vendors_evaluated": total_vendors_evaluated,
+        "total_bids_automated": total_bids_automated,
+        "total_bias_checks": total_bias_checks,
+        "total_drafts": total_drafts,
+        "top_vendors": top_vendors,
+        "recent_activity": logs[:10]
+    }), 200
+
+@app.route('/api/market-intel', methods=['GET'])
+def get_market_intel():
+    """Real-Time Tender Market Intelligence — aggregates multiple portals."""
+    sources_param = request.args.get('sources', None)
+    sources = sources_param.split(',') if sources_param else None
+    data = fetch_all_market_tenders(sources)
+    return jsonify(data), 200
+
+@app.route('/api/evaluations/history', methods=['GET'])
+def get_eval_history():
+    """Fetch the list of past evaluations for the session drawer."""
+    history = get_evaluation_history(limit=50)
+    return jsonify(history), 200
+
+@app.route('/api/evaluation/<eval_id>', methods=['GET'])
+def get_evaluation(eval_id):
+    """Fetch a specific evaluation session by ID."""
+    doc = get_full_evaluation(eval_id)
+    if not doc:
+        return jsonify({"error": "Evaluation not found"}), 404
+    return jsonify(doc), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

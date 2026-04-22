@@ -43,9 +43,9 @@ const BiasCheckerDashboard = () => {
   };
 
   const getScoreColor = (score) => {
-    if (score < 30) return '#10b981'; // Green - neutral
-    if (score < 70) return '#f59e0b'; // Yellow - warning
-    return '#ef4444'; // Red - highly restrictive
+    if (score < 30) return '#ffffff'; // Green - neutral
+    if (score < 70) return '#dc2626'; // Yellow - warning
+    return '#dc2626'; // Red - highly restrictive
   };
 
   return (
@@ -105,7 +105,7 @@ const BiasCheckerDashboard = () => {
           {/* Flagged Clauses */}
           {result.flagged_clauses && result.flagged_clauses.length > 0 ? (
             <div className="flagged-clauses-section">
-              <h3><AlertTriangle size={18} style={{ color: '#ef4444' }}/> Flagged Clauses ({result.flagged_clauses.length})</h3>
+              <h3><AlertTriangle size={18} style={{ color: '#dc2626' }}/> Flagged Clauses ({result.flagged_clauses.length})</h3>
               <div className="clauses-grid">
                 {result.flagged_clauses.map((flag, idx) => (
                   <div key={idx} className="flag-card">
@@ -121,7 +121,7 @@ const BiasCheckerDashboard = () => {
             </div>
           ) : (
             <div className="clean-bill">
-              <CheckCircle size={32} style={{ color: '#10b981' }}/>
+              <CheckCircle size={32} style={{ color: '#ffffff' }}/>
               <h3>No Major Restrictive Clauses Found</h3>
               <p>This draft appears neutral and fair for public tendering.</p>
             </div>

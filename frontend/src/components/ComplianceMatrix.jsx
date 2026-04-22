@@ -8,16 +8,16 @@ const ComplianceMatrix = ({ vendor }) => {
   if (matrix.length === 0) return null;
 
   const STATUS_CONFIG = {
-    PASS: { icon: CheckCircle, color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
-    FAIL: { icon: XCircle, color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' },
-    PARTIAL: { icon: AlertCircle, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' }
+    PASS: { icon: CheckCircle, color: '#ffffff', bg: 'rgba(255, 255, 255, 0.1)' },
+    FAIL: { icon: XCircle, color: '#dc2626', bg: 'rgba(220, 38, 38, 0.1)' },
+    PARTIAL: { icon: AlertCircle, color: '#dc2626', bg: 'rgba(220, 38, 38, 0.1)' }
   };
 
   return (
     <div className="compliance-matrix-container">
       <div className="compliance-header" onClick={() => setExpanded(!expanded)}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ShieldCheck size={18} style={{ color: '#6366f1' }} />
+          <ShieldCheck size={18} style={{ color: '#dc2626' }} />
           <h4>Clause-by-Clause Compliance</h4>
           <span className="clause-count">{matrix.length} Clauses</span>
         </div>

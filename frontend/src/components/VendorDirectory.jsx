@@ -86,12 +86,12 @@ const VendorDirectory = () => {
                   <td className="text-center">{v.total_bids}</td>
                   <td>
                     <div className="progress-bar-bg">
-                      <div className="progress-bar-fill" style={{ width: `${v.win_rate || 0}%`, background: v.win_rate > 50 ? '#10b981' : '#f59e0b' }}></div>
+                      <div className="progress-bar-fill" style={{ width: `${v.win_rate || 0}%`, background: v.win_rate > 50 ? '#ffffff' : '#dc2626' }}></div>
                     </div>
                     <span className="rate-text">{v.win_rate ? v.win_rate.toFixed(1) : 0}% ({v.wins} wins)</span>
                   </td>
                   <td className="text-center score-td">
-                    <span className="score-badge" style={{ color: v.average_score > 80 ? '#10b981' : '#f59e0b', borderColor: v.average_score > 80 ? '#10b981' : '#f59e0b' }}>
+                    <span className="score-badge" style={{ color: v.average_score > 80 ? '#ffffff' : '#dc2626', borderColor: v.average_score > 80 ? '#ffffff' : '#dc2626' }}>
                       {v.average_score}%
                     </span>
                   </td>
